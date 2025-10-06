@@ -1,0 +1,555 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Controllers\BaseController;
+//use CodeIgniter\API\ResponseTrait;
+//use CodeIgniter\RESTful\ResourceController;
+
+class Api extends BaseController
+{
+    //use ResponseTrait;
+    private string $crm_url;
+    private string $crm_app;
+    private string $crm_username;
+    private string $crm_password;
+    public ?string $session_id;
+
+    public function __construct()
+    {
+        $this->crm_url = getEnv('APP_CRM_URL');
+        $this->crm_app = getEnv('API_CRM_APPLICATION');
+        $this->crm_username = getEnv('API_CRM_USERNAME');
+        $this->crm_password = getEnv('API_CRM_PASSWORD');
+        $this->session_id = $this->get_session();
+    }
+
+    public function crm_save_case(array $connection)
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+        if (!is_null($this->session_id)) {
+            extract($connection, EXTR_PREFIX_SAME, "connection");
+            try {
+                $post_fields = [
+                    'method' => 'set_entry',
+                    'input_type' => 'JSON',
+                    'response_type' => 'JSON',
+                    'rest_data' => '{"session":"' . $this->session_id . '","module_name":"Cases","name_value_list":[
+                    {"name":"name","value":"Demande '.$sub_category.'_' . $title . '_' . date('Y-m-d') . '"},
+                    {"name":"source_c","value":"e_form"},
+                    {"name":"priority","value":"Low"},
+                    {"name":"state","value":"Open"},
+                    {"name":"status","value":"Open_Pending Input"},
+                    {"name":"eneo_case_category_c","value":"commercial"}, 
+                    {"name":"eneo_sub_category_c","value":"commercial_branchement"}, 
+                    {"name":"eneo_sub_category_detail_c","value":"' . $sub_category_detail . '"},	
+                    {"name":"public_ticket_c","value":"' . $ticket_public . '"},
+                    {"name":"description","value":"' . $connection_type_label . $appliances  . '"},
+                    {"name":"customer_title_br_c","value":"' . $civility  . '"},
+                    {"name":"first_name_br_c","value":"' . $firstname  . '"},
+                    {"name":"last_name_br_c","value":"' . $lastname  . '"},
+		    {"name":"phonecustomer_c","value":"' .$phone_dial_code. $phone  . '"},
+                    {"name":"phone3_c","value":"' .$phone_dial_code. $phone  . '"},
+                    {"name":"phone2_c","value":"' .$phone_dial_code. $phone  . '"},
+                    {"name":"phone_c","value":"' .$phone_dial_code. $phone  . '"},
+                    {"name":"email_client_br_c","value":"' . $email  . '"},
+                    {"name":"type_document_br_c","value":"' . $identity_type . '"},
+                    {"name":"document_number_br_c","value":"' . $identity_number  . '"}, 
+                    {"name":"state_document_br_c","value":"' . $region  . '"},
+                    {"name":"tax_id_br_c","value":"' . $taxnum . '"},					
+                    {"name":"code_activity_br_c","value":"' . $activity  . '"},
+                    {"name":"contract_number_br_c","value":"' . $contract_number  . '"},
+                    {"name":"agency_c","value":"' . $agency . '"},
+                    {"name":"number_wire_c","value":"' . $meter_type  . '"},
+                    {"name":"country_document_br_c","value":"' . $identity_country  . '"},					
+                    {"name":"appliant_status_br_c","value":"' . $requestor  . '"},
+                    {"name":"premise_activity_br_c","value":"' . $premise_activity  . '"},
+                    {"name":"construction_type_c","value":"' . $construction_type  . '"},
+                    {"name":"premise_direction_br_c","value":"' . $premise_location  . '"},
+                    {"name":"connection_type_br_c","value":"' . $connection_type  . '"},
+                    {"name":"number_additional_panel_c","value":"' . $meter_quantity  . '"},
+                    {"name":"duplicate_int_br_c","value":"' . $number_floor  . '"},
+                    {"name":"count_type_br_c","value":"' . $type_compteur  . '"},
+                    {"name":"dist_reseau_c","value":"' . $networkDis  . '"}]}'
+                ];
+
+
+                return $this->callCRM($post_fields);
+            } catch (\Exception $e) {
+                log_message('error', "CRM API Fail to set_entry API 'module_name:Cases' execption".$e->getMessage());
+                exit($e->getMessage());
+            }
+        }
+        log_message('error', "Fail to login in CRM API");
+    }
+
+    public function crm_update_case(array $connection)
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+        if (!is_null($this->session_id)) {
+            extract($connection, EXTR_PREFIX_SAME, "connection");
+
+            try {
+                // addNote($noteTitle, $noteDesc, $noteParent, $sessionId)
+                $post_fields = [
+                    'method' => 'set_entry',
+                    'input_type' => 'JSON',
+                    'response_type' => 'JSON',
+                    'rest_data' => '{"session":"' . $this->session_id . '","module_name":"Notes","name_value_list":[
+                    {"name":"name","value":"' . $title . '"},
+                    {"name":"description","value":"' . $description . '"},
+                    {"name":"parent_type","value":"Cases"},
+                    {"name":"parent_id","value":"' . $ticket . '"}]}'
+                ];
+                $noteId = $this->callCRM($post_fields);
+                // addNote end
+                // addNoteAttachment($noteId, $file, $sessionId)
+                if (!is_null($noteId)) {
+                    $fileCI = new \CodeIgniter\Files\File($file);
+
+                    // Check if the file exists
+                    if (file_exists($file) && ($fp = fopen($file, "rb")) !== false) {
+		        if (filesize($file) > 0) {	   
+		           $contents = fread($fp, filesize($file));
+		
+			   fclose($fp);
+
+                           $set_note_attachment_parameters = array(
+                             "session" => $this->session_id,
+                             "note" => array(
+                                'id'                  => $noteId,
+                                'filename'            => $filename,
+                                'file'                => base64_encode($contents),
+                                'related_module_name' => 'Cases'
+                             ),
+                           );
+
+                           $post_fields = [
+                             'method' => 'set_note_attachment',
+                             'input_type' => 'JSON',
+                             'response_type' => 'JSON',
+                             'rest_data' => json_encode($set_note_attachment_parameters)
+                           ];
+
+                           $result = $this->callCRM($post_fields);
+			   return $result;
+			}
+                    }
+                }
+                // addNoteAttachment end
+            } catch (\Exception $e) {
+                exit($e->getMessage());
+            }
+        }
+        log_message('error', "Fail to login in CRM API");
+    }
+
+    public function crm_update_state_case(string $ticket, string $status = "Open_New",string $state="Open",string $assigned_user_id='')
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+        if (!is_null($this->session_id)) {
+            try {
+                $post_fields = [
+                    'method' => 'set_entry',
+                    'input_type' => 'JSON',
+                    'response_type' => 'JSON',
+                    'rest_data' => '{"session":"' . $this->session_id . '","module_name":"Cases","name_value_list":[
+		    {"name":"assigned_user_id","value":"' . $assigned_user_id . '"},
+                    {"name":"state","value":"'.$state.'"},
+                    {"name":"status","value":"' . $status . '"},			  
+                    {"name":"id","value":"' . $ticket . '"}]}'
+                ];
+
+                return $this->callCRM($post_fields);
+            } catch (\Exception $e) {
+                exit($e->getMessage());
+            }
+        }
+        log_message('error', "Fail to login in CRM API");
+    }
+    
+    
+    public function crm_update_stateStatusResolution_case(string $ticket, string $status = "Open_New",string $state="Open",string $resolution='PJ INEXPLOITABLES')
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+        if (!is_null($this->session_id)) {
+            try {
+                $post_fields = [
+                    'method' => 'set_entry',
+                    'input_type' => 'JSON',
+                    'response_type' => 'JSON',
+                    'rest_data' => '{"session":"' . $this->session_id . '","module_name":"Cases","name_value_list":[
+                    {"name":"resolution","value":"' . $resolution . '"},
+                    {"name":"state","value":"'.$state.'"},
+                    {"name":"status","value":"' . $status . '"},			  			  
+                    {"name":"id","value":"' . $ticket . '"}]}'
+                ];
+
+                return $this->callCRM($post_fields);
+            } catch (\Exception $e) {
+                exit($e->getMessage());
+            }
+        }
+        log_message('error', "Fail to login in CRM API");
+    }
+
+   /* public function crm_get_branch_info(string $filter_value,$filter_parameter='case_id_c')
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+        $query =  "$filter_parameter='" . $filter_value . "'";
+        $get_entry_parameters = [
+            "session"       => $this->session_id,
+            "module_name"   => "E_Bra_Branchements",
+            "query"         => $query,
+            "order_by"      => "",
+            "offset"        => "0",
+            "select_fields" => ["id", "name", "montant_devis_c","wr_details_c", "date_entered", "assigned_user_id"],
+            "max_results"   => "10",
+            "deleted"       => "0",
+            "favorites"     => false
+        ];
+
+        $post_fields = [
+            'method' => 'get_entry_list',
+            'input_type' => 'JSON',
+            'response_type' => 'JSON',
+            'rest_data' => json_encode($get_entry_parameters)
+        ];
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'http://crmtest.camlight.cm/service/v4_1/rest.php',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $post_fields,
+            CURLOPT_HTTPHEADER => array(
+                'Cookie: PHPSESSID=' . $this->session_id
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        
+       *if (!is_null($response)) {
+            return $response->entry_list[0]->name_value_list->case_number->value;
+        }
+        return $response;
+    }
+    */
+
+    public function crm_get_case_info(string $caseId)
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+
+        $get_entry_parameters = array(
+            'session' => $this->session_id,
+            'module_name' => "Cases",
+            'id' => $caseId,
+            //The list of fields to be returned in the results
+            'select_fields' => array(
+                'id',
+                'case_number',
+                'status',
+                'resolution'
+            ),
+            //Flag the record as a recently viewed item
+            'track_view' => true,
+        );
+
+        $post_fields = [
+            'method' => 'get_entry',
+            'input_type' => 'JSON',
+            'response_type' => 'JSON',
+            'rest_data' => json_encode($get_entry_parameters)
+        ];
+
+        $response = $this->callCRM($post_fields, true);
+        if (!is_null($response)) {
+            return $response->entry_list[0]->name_value_list;
+        }
+        return $response;
+    }
+
+    public function get_caseNumber(string $caseId)
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+
+        $get_entry_parameters = array(
+            'session' => $this->session_id,
+            'module_name' => "Cases",
+            'id' => $caseId,
+            //The list of fields to be returned in the results
+            'select_fields' => array(
+                'id',
+                'case_number',
+            ),
+            //Flag the record as a recently viewed item
+            'track_view' => true,
+        );
+
+        $post_fields = [
+            'method' => 'get_entry',
+            'input_type' => 'JSON',
+            'response_type' => 'JSON',
+            'rest_data' => json_encode($get_entry_parameters)
+        ];
+
+        $response = $this->callCRM($post_fields, true);
+        if (!is_null($response)) {
+            return $response->entry_list[0]->name_value_list->case_number->value;
+        }
+        return $response;
+    }
+
+    public function check_case($ticket)
+    {
+       $this->session_id = $this->session_id ?? $this->get_session();
+       $rest_data = [
+               "session"      => $this->session_id,
+               "module_name"  => "Cases",
+               "query"        => "cases_cstm.public_ticket_c=$ticket",
+               "select_fields"=> ["id","name"]
+       ];
+
+       $response = $this->call('get_entry_list',$rest_data);
+       if (is_null($response)){
+          //log_message('ERROR', 'CRM API DO NOT RESPOND.');
+          die('CRM API DO NOT RESPOND.');
+       }
+       return  $response;
+
+    }
+
+
+    public function check_note($note)
+    {
+       extract($note);
+       $this->session_id = $this->session_id ?? $this->get_session();
+       $query  = "notes.filename='$filename'";
+       $query .= " AND notes.parent_type='Cases'";
+       $query .= " AND notes.parent_id='$ticket'";
+      
+       $rest_data = [
+               "session"      => $this->session_id,
+               "module_name"  => "Notes",
+               "query"        => $query,
+               #"select_fields"=> ["id","name"]
+       ];
+     
+       $response = $this->call('get_entry_list',$rest_data);
+      
+       if (is_null($response)){
+         //log_message('ERROR', 'CRM API DO NOT RESPOND.');
+	 die('CRM API DO NOT RESPOND.');
+       }
+       return $response;
+       //$result = (property_exists($response,'result_count'))? $response->result_count:-1;
+    }
+
+
+    public function check_case_status($id,$status)
+    {
+       $this->session_id = $this->session_id ?? $this->get_session();
+       $rest_data = [
+               "session"      => $this->session_id,
+               "module_name"  => "Cases",
+               "query"        => "cases.id='$id' AND cases.status='".$status."'",
+       ];
+
+       $response = $this->call('get_entry_list',$rest_data);
+       if (is_null($response)){
+          log_message('ERROR', 'CRM API DO NOT RESPOND.');
+          die('CRM API DO NOT RESPOND.');
+       }
+       return  $response->result_count;
+
+    }
+
+    public function check_case_toopen($id)
+    {
+       $this->session_id = $this->session_id ?? $this->get_session();
+       $rest_data = [
+               "session"      => $this->session_id,
+               "module_name"  => "Cases",
+               "query"        => "cases.id='$id' AND cases.status='Open_Pending Input' AND cases.assigned_user_id=''",
+       ];
+
+       $response = $this->call('get_entry_list',$rest_data);
+       if (is_null($response)){
+          log_message('ERROR', 'CRM API DO NOT RESPOND.');
+          die('CRM API DO NOT RESPOND.');
+       }
+       return  $response->result_count;
+
+    }
+
+
+    public function get_case($id)
+    {
+       $this->session_id = $this->session_id ?? $this->get_session();
+       $rest_data = [
+               "session"      => $this->session_id,
+               "module_name"  => "Cases",
+               "query"        => "cases.id='$id'",
+       ];
+
+       $response = $this->call('get_entry_list',$rest_data);
+       if (is_null($response)){
+          log_message('ERROR', 'CRM API DO NOT RESPOND.');
+          die('CRM API DO NOT RESPOND.');
+       }
+       return  $response;
+    }
+
+
+    public function  get_user($login)
+    {
+       $this->session_id = $this->session_id ?? $this->get_session();
+       $query  = "users.user_name='$login'";
+     
+       $rest_data = [
+               "session"      => $this->session_id,
+               "module_name"  => "Users",
+               "query"        => $query
+       ];
+
+       $response = $this->call('get_entry_list',$rest_data);
+
+       if (is_null($response)){
+          log_message('ERROR', 'CRM API DO NOT RESPOND.');
+          die('CRM API DO NOT RESPOND.');
+       }
+       return  $response;
+    }
+
+
+    public function generateSessionID(): ?string
+    {
+        $curl = curl_init();
+ 
+        $post_fields = [
+            'method' => 'login',
+            'input_type' => 'JSON',
+            'response_type' => 'JSON',
+            'rest_data' => '{"user_auth":{"user_name":"' . $this->crm_username . '","password":"' . $this->crm_password . '"},"application":"' . $this->crm_app . '"}'
+        ];
+
+        $curl_options = [
+            CURLOPT_URL            => $this->crm_url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING       => '',
+            CURLOPT_MAXREDIRS      => 10,
+            CURLOPT_TIMEOUT        => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST  => 'POST',
+            CURLOPT_POSTFIELDS     => $post_fields
+        ];
+
+        curl_setopt_array($curl, $curl_options);
+        $response = curl_exec($curl);
+
+        if ($response === false || curl_getinfo($curl, CURLINFO_HTTP_CODE) != 200) {
+            $id = null;
+        } else {
+            $id = json_decode($response)->id;
+        }
+        curl_close($curl);
+
+        return $id;
+    }
+
+    private function get_session(): ?string
+    {
+        $session_id = $this->generateSessionID();
+        $attempts = 0;
+        while (is_null($session_id) && $attempts <= 5) {
+            $session_id = $this->generateSessionID();
+            $attempts++;
+        }
+        return $session_id;
+    }
+
+    private function get_curl_options($post_fields)
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+        if (!is_null($this->session_id)) {
+            return [
+                CURLOPT_URL            => $this->crm_url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING       => '',
+                CURLOPT_MAXREDIRS      => 10,
+                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST  => 'POST',
+                CURLOPT_POSTFIELDS     => $post_fields,
+                CURLOPT_HTTPHEADER     => ['Cookie: PHPSESSID=' . $this->session_id]
+            ];
+        }
+    }
+
+    protected function callCRM($post_fields, bool $all = false)
+    {
+        $this->session_id = $this->session_id ?? $this->get_session();
+
+        $curl = curl_init();
+        $curl_options = $this->get_curl_options($post_fields);
+        curl_setopt_array($curl, $curl_options);
+        $response = curl_exec($curl);
+   
+        if ($response === false || curl_getinfo($curl, CURLINFO_HTTP_CODE) != 200) {
+   
+	    //$this->log('error',json_decode($post_fields['rest_data']), $response);
+            $result = null;
+        } else {
+	       
+		$result = json_decode($response);
+           
+            if (!$all) {
+                $result = $result->id;
+            }
+        }
+
+        curl_close($curl);
+        return $result;
+    }
+
+    /**
+     * function to make cURL request
+     */
+    public function call(string $method,array $arguments)
+    {
+        $json = json_encode($arguments);
+        $post = array(
+            "method" => $method,
+            "input_type" => "JSON",
+            "response_type" => "JSON",
+            "rest_data" => $json
+        );
+        $curl_options = $this->get_curl_options($post);
+        $curl = curl_init();
+        curl_setopt_array($curl, $curl_options);
+        $response = curl_exec($curl);
+        
+        curl_close($curl);
+        return json_decode($response);
+    }
+    
+    private function log(string $type,string $resquest ,string $response){
+        $data = [
+            'resquest'   => $resquest, 
+            'response'   => $response,
+            'error'      => ($type == 'error') ? '[ERROR]' : '',
+            'type'  => ($type == 'error' || $type == 'critical' || $type == 'alert' ) ? 'exception' : 'response',
+        ];
+        log_message($type, "{error}  TRY CAll CALL API WITH  :: resquest {resquest} AND {type} :: {response} ", $data);
+    }
+}

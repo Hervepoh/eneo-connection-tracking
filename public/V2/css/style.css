@@ -1,0 +1,242 @@
+@font-face {
+    font-family: "IDAutomationHC39M";
+    src: url(css/IDAutomationHC39M.html);
+}
+
+#barcode {
+    font-family: "IDAutomationHC39M";
+    margin-top: 16px;
+}
+
+body {
+    background: #F4F4F4;
+    font-family: sansation, arial, sans-serif
+}
+
+.btn-sub {
+    padding-bottom: 3px;
+    padding-top: 3px;
+}
+
+.h-title {
+    margin-top: 20px !important;
+    padding: 6px 10px;
+    background: #0e71b4;
+    color: #FFF;
+    text-transform: uppercase;
+    font-size: 25px;
+}
+
+/*.e-mail {*/
+    /*display: none;*/
+/*}*/
+
+.contt-title {
+    max-width: 655px;
+    margin: auto;
+}
+
+.contentbilInfo {
+    background: #e3e3fe;
+    padding: 14px;
+    font-size: 1.1em;
+}
+
+.contentbilInfo-red {
+    border: solid 1px #C00;
+    color: #C00;
+    background: #FFB3B3;
+    font-size: 16px;
+    padding: 5px 10px;
+    margin: 10px;
+    border-radius: 6px
+}
+
+.contentbilInfo-red a {
+    text-decoration: none;
+    color: #C00;
+}
+
+.contentbilInfo div {
+    margin-bottom: 10px;
+}
+
+.contentbilInfo div span {
+    color: #F00;
+}
+
+.h-title img {
+    width: 210px;
+}
+
+.headImg {
+    width: 100%
+}
+
+.pay-content {
+    background: #000;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.pay-title {
+    width: 100%;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    color: #98c014;
+}
+
+.pay-title span {
+    color: #ffff00
+}
+
+input.invalid,
+textarea.invalid {
+    border: 2px solid red;
+}
+
+input.valid,
+textarea.valid {
+    border: 1px solid green;
+}
+
+.select-invalid
+{
+    border: 2px solid red;
+}
+
+.select-valid
+{
+    border: 1px solid green;
+}
+
+.contentOsp {
+    padding: 15px;
+    display: none;
+    margin-top: -22px;
+}
+
+.bodyOsp {
+    width: 100%;
+    background: #FFF;
+}
+
+.loading {
+    width: 100%;
+    padding-top: 15px;
+    text-align: center;
+    padding-bottom: 15px;
+}
+
+.imhLoad {
+    width: 22px;
+}
+
+.bodyOsp table {
+    width: 100%
+}
+
+.bodyOsp table td {
+    padding: 10px 10px;
+    color: #333;
+}
+
+.global {
+    margin-top: 50px;
+}
+
+.clear {
+    clear: both
+}
+
+.left {
+    text-align: left;
+}
+
+.right {
+    text-align: right;
+}
+
+.lang {
+    float: right;
+    margin-left: 20px;
+    color: #98c012;
+}
+
+.checkbox,
+.checkbox-c,
+.check-condition {
+    width: 18px;
+    height: 18px;
+    margin-top: 10px;
+}
+
+.radiobox {
+    width: 18px;
+    height: 18px;
+    margin-top: 10px;
+}
+
+.checkbox-c {
+    margin-top: 10px;
+    margin-right: 10px;
+    float: left;
+}
+
+.check {
+    font-size: 12px;
+}
+
+.conditions_utilisation {
+    margin-top: 5px;
+    margin-left: 15px;
+}
+
+.container {
+    max-width: 1000px;
+    margin-left: 5px;
+    background: #FFF;
+    border: solid 1px #DBDBDB;
+    border-radius: 15px
+}
+
+.descrip {
+    text-align: justify;
+    margin-bottom: 20px;
+    margin-top: 30px;
+    font-size: 16px
+}
+
+.content_lang {
+    position: absolute;
+    right: 0px;
+    margin-right: 20px;
+}
+
+.formElt {
+    padding: 10px;
+    background-color: #f4f4f4;
+    margin-bottom: 20px;
+    margin-top: 30px;
+    border-radius: 15px;
+}
+
+@media only screen and (max-width: 600px) {
+    .form-group {
+        margin: 2px;
+    }
+    .checkbox-inline span {
+        margin-top: 11px;
+        margin-left: 30px;
+        display: block;
+    }
+    .checkbox {
+        float: left;
+    }
+    .mobli-lb {
+        width: 90%!important;
+    }
+    .mobli-cth {
+        width: 10%!important;
+    }
+}

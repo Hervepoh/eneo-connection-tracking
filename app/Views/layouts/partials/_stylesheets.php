@@ -1,0 +1,1 @@
+<link rel="shortcut icon" href="<?= base_url() ?>/assets/favicon.ico"  type="image/vnd.microsoft.icon">
