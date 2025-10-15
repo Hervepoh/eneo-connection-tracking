@@ -50,7 +50,7 @@ $routes->group('/connection',['namespace' => 'App\Controllers\Connection'], stat
     // Post route for connection search follow up
     $routes->post('follow', 'Connection::follow_middleware',  ['as' => 'follow']);
     // Get Route for connection follow up view
-    $routes->get('follow/(:num)/(:alphanum)', 'Connection::follow/$1/$2');
+    $routes->get('follow/(:num)', 'Connection::follow/$1');
 
     $routes->match(['get', 'post'] ,'(:num)/(:alphanum)', 'Connection::show/$1/$2');
 });

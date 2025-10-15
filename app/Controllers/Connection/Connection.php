@@ -217,15 +217,15 @@ class Connection extends BaseController
         }
         
     }
-
-    public function follow($ticket, $nui)
+    
+    public function follow($id)
     {
         // to be able to share session data 
         $session = session();
         helper(['form', "url", 'multi_language']);
         $title =  'Eneo Cameroon - Request follow-up';
         $requestModel = new ConnectionModel();
-        $condition = array('ticket_public' => $ticket, 'taxnum' => $nui);
+        $condition = array('id_request' => $id);
         if (!$data = $requestModel->where($condition)->first()) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
