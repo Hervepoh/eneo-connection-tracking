@@ -305,8 +305,9 @@
 
 			<div class="controls" role="region" aria-label="Recherche et actions">
 				<form class="search" method="get" action="<?= site_url('/') ?>" role="search" aria-label="Recherche de demandes">
-					<label for="q" class="visually-hidden">Recherche</label>
-					<input id="q" name="q" type="text" placeholder="Recherche par ticket, nom ou NUI..." value="<?= esc($search ?? '') ?>" />
+					<label for="search" class="visually-hidden">Recherche</label>
+					<!-- <input id="q" name="q" type="text" placeholder="Recherche par ticket, nom ou NUI..." value="<?= esc($search ?? '') ?>" /> -->
+					<input id="search" name="search" type="text" placeholder="Recherche..." value="<?= esc($search ?? '') ?>" />
 					<button type="submit" aria-label="Rechercher">Rechercher</button>
 				</form>
 

@@ -16,7 +16,9 @@ class Home extends BaseController
         $model = new ConnectionModel();
         $perPage = 10;
 
-        $search = $this->request->getGet('search');
+        // Récupération du paramètre 'search'
+        $search = trim($this->request->getGet('search') ?? '');
+
         // $query = $model;
 
         // if (!empty($search)) {

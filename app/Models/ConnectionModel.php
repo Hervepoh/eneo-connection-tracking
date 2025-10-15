@@ -129,13 +129,41 @@ class ConnectionModel extends Model
             ->groupBy('connection_request.id_request')
             ->orderBy('connection_request.created_at', 'DESC');
 
+        // if (!empty($search)) {
+        //     $builder->groupStart()
+        //         ->like('connection_request.ticket_public', $search)
+        //         ->orLike('connection_request.firstname', $search)
+        //         ->orLike('connection_request.lastname', $search)
+        //         ->orLike('connection_request.taxnum', $search)
+        //         ->groupEnd();
+        // }
+
+        // --- 🔍 Logique de recherche enrichie ---
         if (!empty($search)) {
-            $builder->groupStart()
-                ->like('connection_request.ticket_public', $search)
-                ->orLike('connection_request.firstname', $search)
-                ->orLike('connection_request.lastname', $search)
-                ->orLike('connection_request.taxnum', $search)
-                ->groupEnd();
+            $search = trim(strtolower($search));
+
+            // Si liste de WR séparée par des virgules
+            if (strpos($search, ',') !== false) {
+                $wrList = array_filter(array_map('trim', explode(',', $search)));
+
+                if (!empty($wrList)) {
+                    $builder->groupStart();
+                    foreach ($wrList as $wr) {
+                        $builder->orWhere('LOWER(connection_request.wr_number)', $wr);
+                    }
+                    $builder->groupEnd();
+                }
+            } else {
+                // Recherche unitaire classique
+                $builder->groupStart()
+                    ->like('LOWER(connection_request.ticket_public)', $search)
+                    ->orLike('LOWER(connection_request.firstname)', $search)
+                    ->orLike('LOWER(connection_request.lastname)', $search)
+                    ->orLike('LOWER(connection_request.taxnum)', $search)
+                    ->orLike('LOWER(connection_request.work_request_number)', $search)
+                    ->orLike('LOWER(connection_request.contract_number)', $search)
+                    ->groupEnd();
+            }
         }
 
         return $builder->paginate($perPage);
