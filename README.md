@@ -32,6 +32,21 @@ In mysql repl execute the following command to Create the db account:
     > FLUSH PRIVILEGES;
     > exit;
 
+-- 1️⃣ Création de la table
+CREATE TABLE work_requests (
+    numero_work_request VARCHAR(20) PRIMARY KEY,
+    customer_name VARCHAR(255) NOT NULL,
+    date_creation_work_request VARCHAR(255),
+    numero_contrat BIGINT NOT NULL
+);
+
+-- 1️⃣ Création de la table
+CREATE TABLE work_requests (
+    numero_work_request VARCHAR(20) PRIMARY KEY,
+    ticket VARCHAR(100) NOT NULL,
+);
+
+
     > docker exec -it connection_www bash 
     > cd connection
     > php spark db:create online_request
