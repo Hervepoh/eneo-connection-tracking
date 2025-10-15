@@ -1,5 +1,3 @@
-<?php // app/Views/welcome.php 
-?>
 <!doctype html>
 <html lang="fr">
 
@@ -259,7 +257,6 @@
 			background: #f9fbff;
 		}
 
-
 		/* ====== Mobile responsiveness ====== */
 		@media (max-width: 900px) {
 			.brand h1 {
@@ -303,15 +300,12 @@
 				<h1 id="pageTitle">Portail - Demandes de branchement</h1>
 			</a>
 
-			<div class="controls" role="region" aria-label="Recherche et actions">
+			<div class="controls" aria-label="Recherche et actions">
 				<form class="search" method="get" action="<?= site_url('/') ?>" role="search" aria-label="Recherche de demandes">
 					<label for="search" class="visually-hidden">Recherche</label>
-					<!-- <input id="q" name="q" type="text" placeholder="Recherche par ticket, nom ou NUI..." value="<?= esc($search ?? '') ?>" /> -->
-					<input id="search" name="search" type="text" placeholder="Recherche..." value="<?= esc($search ?? '') ?>" />
+					<input id="search" name="search" type="text" placeholder="WR, CONTRAT, NOM, CNI, NUI" value="<?= esc($search ?? '') ?>" />
 					<button type="submit" aria-label="Rechercher">Rechercher</button>
 				</form>
-
-				<!-- <a class="action-btn" href="<?= url_to('connection') ?>">Nouvelle demande</a> -->
 			</div>
 		</div>
 
@@ -324,9 +318,9 @@
 						<th scope="col">#</th>
 						<th scope="col">Nom</th>
 						<th scope="col">Numéro de Work Request</th>
-						<th scope="col">Numéro de contrat CMS</th>
-						<th scope="col">Le numéro de CNI</th>
-						<th scope="col">Le numéro de NIU</th>
+						<th scope="col">Numéro de Contrat CMS</th>
+						<th scope="col">Numéro de CNI</th>
+						<th scope="col">Numéro de NIU</th>
 						<th scope="col">Plan de localisation</th>
 					</tr>
 				</thead>
@@ -344,24 +338,29 @@
 							$idnum = esc($r['identity_number'] ?? '');
 							$attachments = json_decode($r['attachments'] ?? '[]', true);
 
-							$displayName = $firstname
-								? "{$firstname} {$lastname}"
-								: ($lastname ?: '<span class="muted">—</span>');
+							if ($firstname) {
+								$displayName = "{$firstname} {$lastname}";
+							} elseif ($lastname) {
+								$displayName = $lastname;
+							} else {
+								$displayName = '<span class="muted">—</span>';
+							}
 
 
 							$linkCNI =  null;
 							$linkNIU = null;
 							$linkPlan =  null;
+							$download_url = 'attachments/download/';
 
 							foreach ($attachments as $file) {
 								$desc = $file['description'];
 
 								if (str_contains($desc, 'ID')) {
-									$linkCNI = site_url('attachments/download/' . $file['id']);
+									$linkCNI = site_url($download_url . $file['id']);
 								} elseif (str_contains($desc, 'NIU')) {
-									$linkNIU = site_url('attachments/download/' . $file['id']);
+									$linkNIU = site_url($download_url . $file['id']);
 								} elseif (str_contains($desc, 'plan') || str_contains($desc, 'Localisation Plan file')) {
-									$linkPlan = site_url('attachments/download/' . $file['id']);
+									$linkPlan = site_url($download_url . $file['id']);
 								}
 							}
 
@@ -389,7 +388,11 @@
 									<?php endif; ?>
 								</td>
 								<td>
-									<a href="<?= $linkPlan ?>" class="link-btn success" target="_blank" title="Voir plan de localisation">Voir le plan</a>
+									<?php if ($linkPlan) : ?>
+										<a href="<?= $linkPlan ?>" class="link-btn success" title="Voir plan de localisation">Voir le plan</a>
+									<?php else : ?>
+										<span class="muted">—</span>
+									<?php endif; ?>
 								</td>
 							</tr>
 						<?php endforeach; ?>
