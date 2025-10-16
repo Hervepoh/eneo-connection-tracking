@@ -332,11 +332,12 @@
 							$id = esc($r['id_request'] ?? $r['id'] ?? $idx + 1);
 							$firstname = esc($r['firstname'] ?? '');
 							$lastname = esc($r['lastname'] ?? '');
-							$wrNumber = esc($r['wr_number'] ?? '—');
+							$wrNumber = esc($r['work_request_number'] ?? '—');
 							$cmsContract = esc($r['cms_contract'] ?? '—');
 							$tax = esc($r['taxnum'] ?? '');
 							$idnum = esc($r['identity_number'] ?? '');
-							$attachments = json_decode($r['attachments'] ?? '[]', true);
+							//$attachments = json_decode($r['attachments'] ?? '[]', true);
+							$attachments = $r['attachments'] ?? [];
 
 							if ($firstname) {
 								$displayName = "{$firstname} {$lastname}";
@@ -354,17 +355,16 @@
 
 							foreach ($attachments as $file) {
 								$desc = $file['description'];
-
-								if (str_contains($desc, 'ID')) {
-									$linkCNI = site_url($download_url . $file['id']);
-								} elseif (str_contains($desc, 'NIU')) {
-									$linkNIU = site_url($download_url . $file['id']);
-								} elseif (str_contains($desc, 'plan') || str_contains($desc, 'Localisation Plan file')) {
-									$linkPlan = site_url($download_url . $file['id']);
+								if ($desc) {
+									if (str_contains($desc, 'ID')) {
+										$linkCNI = site_url($download_url . $file['id']);
+									} elseif (str_contains($desc, 'NIU')) {
+										$linkNIU = site_url($download_url . $file['id']);
+									} elseif (str_contains($desc, 'plan') || str_contains($desc, 'Localisation Plan file')) {
+										$linkPlan = site_url($download_url . $file['id']);
+									}
 								}
 							}
-
-
 
 							?>
 							<tr onclick="window.location='<?= site_url('connection/follow/' . $id) ?>'" style="cursor:pointer; transition:background 0.2s ease;">

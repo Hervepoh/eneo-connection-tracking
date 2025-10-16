@@ -32,7 +32,19 @@ In mysql repl execute the following command to Create the db account:
     > FLUSH PRIVILEGES;
     > exit;
 
+ALTER TABLE connection_request 
+ADD COLUMN cms_contract VARCHAR(100) NULL 
+AFTER contract_number;
+
 -- 1️⃣ Création de la table
+CREATE TABLE tickets_work_requests (
+    TICKET_CRM VARCHAR(100) PRIMARY KEY,
+    TICKET_PUBLIC VARCHAR(20) NOT NULL,
+    PHONE VARCHAR(255),
+    WR_LIST VARCHAR(5000)
+);
+
+
 CREATE TABLE work_requests (
     numero_work_request VARCHAR(20) PRIMARY KEY,
     customer_name VARCHAR(255) NOT NULL,
@@ -46,6 +58,39 @@ CREATE TABLE work_requests (
     ticket VARCHAR(100) NOT NULL,
 );
 
+-- 🔥 Index composite pour pagination (LE PLUS IMPORTANT)
+CREATE INDEX idx_deleted_created ON connection_request(deleted_at, created_at DESC);
+
+-- 🔍 Index pour recherches
+CREATE INDEX idx_work_request ON connection_request(work_request_number(100));
+CREATE INDEX idx_ticket ON connection_request(ticket_public(100));
+CREATE INDEX idx_contract ON connection_request(contract_number(100));
+CREATE INDEX idx_identity ON connection_request(identity_number(50));
+CREATE INDEX idx_taxnum ON connection_request(taxnum(50));
+
+-- 👤 Index composite pour noms
+CREATE INDEX idx_names ON connection_request(firstname(50), lastname(50));
+
+-- 📎 Index pour attachments (CRITIQUE)
+CREATE INDEX idx_attach_request_deleted ON request_attachment(id_request, deleted_at);
+
+
+UPDATE connection_request cr
+INNER JOIN tickets_work_requests twr 
+    ON cr.ticket_public = twr.TICKET_PUBLIC
+SET cr.work_request_number = twr.WR_LIST 
+WHERE cr.work_request_number IS NULL 
+   OR cr.work_request_number = '';
+
+
+UPDATE connection_request cr
+INNER JOIN work_requests wr 
+    ON cr.work_request_number = wr.numero_work_request 
+SET cr.cms_contract = wr.numero_contrat 
+WHERE cr.cms_contract IS NULL 
+   OR cr.cms_contract = '';
+
+   
 
     > docker exec -it connection_www bash 
     > cd connection
