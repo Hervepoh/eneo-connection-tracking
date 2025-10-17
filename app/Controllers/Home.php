@@ -28,10 +28,10 @@ class Home extends BaseController
         $cache = \Config\Services::cache();
 
         // 🔍 Tentative de récupération du cache
-        // if ($data = $cache->get($cacheKey)) {
-        //     // ✅ Cache hit - ultra-rapide (< 10ms)
-        //     return view('welcome_message', $data);
-        // }
+        if ($data = $cache->get($cacheKey)) {
+            // ✅ Cache hit - ultra-rapide (< 10ms)
+            return view('welcome_message', $data);
+        }
 
         // ⏱️ Cache miss - exécuter la requête
         $startTime = microtime(true);
